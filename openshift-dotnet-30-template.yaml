@@ -1,0 +1,21 @@
+kind: ImageStream
+apiVersion: v1
+metadata:
+  name: dotnet-30
+  annotations:
+    openshift.io/display-name: .Net Core 3.0
+spec:
+  tags:
+  - name: 'latest'
+    annotations:
+      openshift.io/display-name: .Net Core 3.0
+      description: |
+        Build and run .Net Core 3.0 applications on CentOS 7.
+        IMPORTANT: environment variables GIT_PROJECT_ROOT, PROJECT_DLL and PATH_CSPROJ_FILE must be set by corresponding values in "Build Configuration" section, "Environment Variables (Build and Runtime)" list.       
+      iconClass: icon-dotnet
+      tags: builder,dotnet
+      supports: dotnet:3.0,dotnet
+      version: 'latest'
+    from:
+      kind: DockerImage
+      name: docker.io/nbmaster/openshift-dotnet-30-runtime

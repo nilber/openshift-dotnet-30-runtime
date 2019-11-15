@@ -1,0 +1,34 @@
+#!/bin/bash -e
+#
+# S2I assemble script for the 'dotnet-30-runtime' image.
+# The 'assemble' script builds your application source so that it is ready to run.
+#
+# For more information refer to the documentation:
+#	https://github.com/openshift/source-to-image/blob/master/docs/builder_image.md
+#
+
+# If the 'dotnet-30-runtime' assemble script is executed with the '-h' flag, print the usage.
+if [[ "$1" == "-h" ]]; then
+	exec /usr/libexec/s2i/usage
+fi
+
+# Restore artifacts from the previous build (if they exist).
+#
+if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
+  echo "---> Restoring build artifacts..."
+  mv /tmp/artifacts/. ./
+fi
+
+echo "---> Installing application source..."
+cp -Rf /tmp/src/. ./
+
+echo "---> Building application from source..."
+
+# restaurando packages
+if [ "$PATH_CSPROJ_FILE" != "" ] ; then dotnet restore "$PATH_CSPROJ_FILE" ; else echo '(restore) PATH_CSPROJ_FILE variable not set'; fi
+
+if [ "$PATH_CSPROJ_FILE" != "" ] ; then dotnet publish "$PATH_CSPROJ_FILE" -c Release -o /app ; else echo '(publish) PATH_CSPROJ_FILE variable not set'; mkdir -p /app; fi
+
+if [ "$PROJECT_DLL" != "" ] ; then echo 'PROJECT_DLL OK'; else echo '(RUN) PROJECT_DLL variable not set'; fi
+
+rm -fr /tmp/src/ ./* /opt/app-root/*
