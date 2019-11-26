@@ -1,8 +1,5 @@
 # dotnet-30-runtime
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine3.10
-
-
-
+FROM openshift/base-centos7
 
 # TODO: Put the maintainer name in the image metadata
 LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
@@ -17,32 +14,30 @@ LABEL io.k8s.description=".Net Core 3.0" \
     io.openshift.tags="builder,dotnet-30,net-30." \
     io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 
-# TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
-# sets io.openshift.s2i.scripts-url label that way, or update that label
-RUN mkdir -p /usr/libexec/
-COPY ./s2i/bin/ /usr/libexec/s2i
-RUN ls -l /usr/libexec/s2i
+# TODO: Install required packages here:
+# RUN yum install -y ... && yum clean all -y
+RUN rm -fr /var/cache/yum/* &&  yum clean all -y && yum repolist
+RUN rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+RUN yum install -y dotnet-sdk-3.0 && yum clean all -y
+#RUN gem install asdf
 
 
-RUN mkdir /app && ls -la /
-
-RUN addgroup -S 1001 && adduser -S 1001 -G 1001
-
-
-WORKDIR /opt/app-root/
 
 # TODO (optional): Copy the builder files into /opt/app-root
 COPY ./* /opt/app-root/
 
-# # TODO: Drop the root user and make the content of /opt/app-root owned by user 1001
-RUN chown -R 1001:1001 /app
-RUN chown -R 1001:1001 /opt/app-root  && ls -l /opt
-# RUN mkdir /app
-# RUN chown -R 1001:1001 /app
-# # This default user is created in the openshift/base-centos7 image
-# USER 1001
+# TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
+# sets io.openshift.s2i.scripts-url label that way, or update that label
+COPY ./s2i/bin/ /usr/libexec/s2i
 
+# TODO: Drop the root user and make the content of /opt/app-root owned by user 1001
+RUN chown -R 1001:1001 /opt/app-root
+RUN chown -R 1001:1001 /opt/app-root/src
+RUN mkdir /app
+RUN chown -R 1001:1001 /app
+# This default user is created in the openshift/base-centos7 image
 USER 1001
+
 
 # TODO: Set the default port for applications built using this image
 EXPOSE 8080

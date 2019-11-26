@@ -1,7 +1,14 @@
 #!/bin/bash
 
-docker build src/ -t dotnet-30-runtime
+DOCKER_IMAGEM=dotnet-30-runtime-alpine
+S2I_IMAGEM=nbmaster/openshift-dotnet-30-runtime-alpine
+TAG=v1.0
 
-s2i build src/ dotnet-30-runtime nbmaster/openshift-dotnet-30-runtime
+docker system prune
+docker rmi $DOCKER_IMAGEM:$TAG $S2I_IMAGEM:$TAG
 
-docker push nbmaster/openshift-dotnet-30-runtime
+docker build src/ -t $DOCKER_IMAGEM:$TAG
+
+s2i build src/ $DOCKER_IMAGEM:$TAG $S2I_IMAGEM:$TAG
+
+docker push $S2I_IMAGEM:$TAG
