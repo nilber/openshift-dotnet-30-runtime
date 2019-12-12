@@ -1,0 +1,47 @@
+kind: ImageStream
+apiVersion: v1
+metadata:
+  name: dotnet-alpine
+  annotations:
+    openshift.io/display-name: .Net Core 3.0A
+spec:
+  tags:
+  - name: '3.0-sdk'
+    annotations:
+      openshift.io/display-name: .Net Core (Alpine)
+      description: |
+        Build and run .Net Core 3.0 applications on Alpine.
+        IMPORTANT: environment variables PROJECT_DLL and PATH_CSPROJ_FILE must be set by corresponding values in "Build Configuration" section
+      iconClass: icon-dotnet
+      tags: builder,dotnet
+      supports: dotnet:3.0,dotnet
+      version: '3.0-sdk'
+    from:
+      kind: DockerImage
+      name: docker.io/nbmaster/openshift-dotnet-30-runtime-alpine:v1.0
+  - name: '2.2-run'
+    annotations:
+      openshift.io/display-name: .Net Core 2.2 Run
+      description: |
+        Run .Net Core 2.2 Run applications on Alpine.
+        IMPORTANT: environment variables PROJECT_DLL must be set by corresponding values in "Build Configuration" section
+      iconClass: icon-dotnet
+      tags: builder,dotnet
+      supports: dotnet:2.2,dotnet
+      version: '2.2-run'
+    from:
+      kind: DockerImage
+      name: docker.io/nbmaster/openshift-dotnet-22-run-alpine:2.2-run
+  - name: '2.2-sdk'
+    annotations:
+      openshift.io/display-name: .Net Core 2.2 SDK
+      description: |
+        Build and run .Net Core 2.2 SDK applications on Alpine.
+        IMPORTANT: environment variables PROJECT_DLL and PATH_CSPROJ_FILE must be set by corresponding values in "Build Configuration" section
+      iconClass: icon-dotnet
+      tags: builder,dotnet
+      supports: dotnet:2.2,dotnet
+      version: '2.2-sdk'
+    from:
+      kind: DockerImage
+      name: docker.io/nbmaster/openshift-dotnet-22-sdk-alpine:2.2-sdk
