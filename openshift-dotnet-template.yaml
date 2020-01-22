@@ -5,7 +5,20 @@ metadata:
   annotations:
     openshift.io/display-name: .Net Core 3.0A
 spec:
-  tags:
+  tags: 
+  - name: '3.1-sdk'
+    annotations:
+      openshift.io/display-name: .Net Core (Alpine)
+      description: |
+        Build and run .Net Core 3.1 applications on Alpine.
+        IMPORTANT: environment variables PROJECT_DLL and PATH_CSPROJ_FILE must be set by corresponding values in "Build Configuration" section
+      iconClass: icon-dotnet
+      tags: builder,dotnet
+      supports: dotnet:3.1,dotnet
+      version: '3.1-sdk'
+    from:
+      kind: DockerImage
+      name: docker.io/nbmaster/openshift-dotnet-31-sdk-alpine:3.1-sdk
   - name: '3.0-sdk'
     annotations:
       openshift.io/display-name: .Net Core (Alpine)
