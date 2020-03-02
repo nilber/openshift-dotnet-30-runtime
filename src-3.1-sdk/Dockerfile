@@ -15,6 +15,8 @@ ENV \
     # PowerShell telemetry for docker image usage
     POWERSHELL_DISTRIBUTION_CHANNEL=PSDocker-DotnetCoreSDK-Alpine-3.10
 
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && apk update && apk add --no-cache libgdiplus
+
 # Add dependencies for disabling invariant mode (set in base image)
 RUN apk add --no-cache icu-libs
 
@@ -29,6 +31,7 @@ RUN dotnet_sdk_version=3.1.101 \
     && rm dotnet.tar.gz \
     # Trigger first run experience by running arbitrary cmd
     && dotnet help
+
 
 # Install PowerShell global tool
 RUN powershell_version=7.0.0-rc.1 \
@@ -46,7 +49,7 @@ RUN powershell_version=7.0.0-rc.1 \
     # Add ncurses-terminfo-base to resolve psreadline dependency
     && apk add --no-cache ncurses-terminfo-base
 
-    
+
 # TODO: Put the maintainer name in the image metadata
 LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
 
