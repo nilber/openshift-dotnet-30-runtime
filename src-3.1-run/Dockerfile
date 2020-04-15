@@ -1,33 +1,23 @@
 ARG REPO=mcr.microsoft.com/dotnet/core/runtime-deps
-FROM $REPO:2.1-alpine3.10
+FROM $REPO:3.1-alpine3.10
 
-# Disable the invariant mode (set in base image)
-RUN apk add --no-cache icu-libs curl
 
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
-    LC_ALL=en_US.UTF-8 \
-    LANG=en_US.UTF-8
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && apk update && apk add --no-cache libgdiplus
 
-# Install .NET Core SDK
-ENV DOTNET_SDK_VERSION 2.1.805
+# Add dependencies for disabling invariant mode (set in base image)
+RUN apk add --no-cache icu-libs
 
-RUN wget -O dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Sdk/$DOTNET_SDK_VERSION/dotnet-sdk-$DOTNET_SDK_VERSION-linux-musl-x64.tar.gz \
-    && dotnet_sha512='6eb76f405c339d8d662ad152b9cd9d0a77957f5538d44bbdc0d2c66f5923bd3064ea9fddcd20e2c2e4a7a051f97e0e99fa0a30ca1649f2c0c6ddbfaaf11831d2' \
+# Install .NET Core
+RUN dotnet_version=3.1.3 \
+    && wget -O dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runtime/$dotnet_version/dotnet-runtime-$dotnet_version-linux-musl-x64.tar.gz \
+    && dotnet_sha512='ce8bef0f11c552d18727d39ae5c8751cba8de70b0bb1958afa6a7f2cf7c4c1bff94a7e216c48c3c3f72f756bfcf8d5c9e5d07f90cf91263a68c5914658ae6767' \
     && echo "$dotnet_sha512  dotnet.tar.gz" | sha512sum -c - \
     && mkdir -p /usr/share/dotnet \
-    && tar -C /usr/share/dotnet -xzf dotnet.tar.gz \
+    && tar -C /usr/share/dotnet -oxzf dotnet.tar.gz \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet \
     && rm dotnet.tar.gz
 
-# Enable correct mode for dotnet watch (only mode supported in a container)
-ENV DOTNET_USE_POLLING_FILE_WATCHER=true \ 
-    # Skip extraction of XML docs - generally not useful within an image/container - helps performance
-    NUGET_XMLDOC_MODE=skip
-
-# Trigger first run experience by running arbitrary cmd to populate local package cache
-RUN dotnet help
-
-RUN dotnet nuget locals all --clear
+RUN apk add --no-cache curl
 
 # TODO: Put the maintainer name in the image metadata
 LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
@@ -36,10 +26,10 @@ LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
 ENV BUILDER_VERSION 1.0
 
 # TODO: Set labels used in OpenShift to describe the builder image
-LABEL io.k8s.description=".Net Core 2.2 SDK" \
-    io.k8s.display-name=".Net Core 2.2 SDK" \
+LABEL io.k8s.description=".Net Core 3.1.3 RUN" \
+    io.k8s.display-name=".Net Core 3.1.3 RUN" \
     io.openshift.expose-services="8080:http" \
-    io.openshift.tags="builder,dotnet-2.2-sdk." \
+    io.openshift.tags="builder,dotnet-3.1.3-run." \
     io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 
 # TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
