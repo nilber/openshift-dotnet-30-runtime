@@ -1,20 +1,28 @@
-ARG REPO=mcr.microsoft.com/dotnet/core/runtime
-FROM $REPO:3.1-bionic
+ARG REPO=mcr.microsoft.com/dotnet/runtime-deps
+ARG DOTNET_VERSION=5.0.0
 
-RUN apt-get update -y \    
-    && apt install libc6-dev -y \
-    && apt install libgdiplus -y \
-    && apt-get install -y --no-install-recommends \
-        curl wget \
-    && rm -rf /var/lib/apt/lists/*
+# Installer image
+FROM amd64/buildpack-deps:focal-curl as installer
+ARG DOTNET_VERSION
 
-# Install ASP.NET Core
-RUN aspnetcore_version=3.1.3 \
-    && curl -SL --output aspnetcore.tar.gz https://dotnetcli.azureedge.net/dotnet/aspnetcore/Runtime/$aspnetcore_version/aspnetcore-runtime-$aspnetcore_version-linux-x64.tar.gz \
-    && aspnetcore_sha512='ced0b7c9faaf250fbee2c850e8941d47a17da06fa8e576d57063fa4bbc6c8435de6ab488b683d4a692cd622e24d9592f11608a1b358074167cf0b76024815611' \
-    && echo "$aspnetcore_sha512  aspnetcore.tar.gz" | sha512sum -c - \
-    && tar -ozxf aspnetcore.tar.gz -C /usr/share/dotnet ./shared/Microsoft.AspNetCore.App \
-    && rm aspnetcore.tar.gz
+# Retrieve .NET
+RUN curl -SL --output dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runtime/$DOTNET_VERSION/dotnet-runtime-$DOTNET_VERSION-linux-x64.tar.gz \
+    && dotnet_sha512='d4d67df5ff5f6dde0d865a6e87559955bd57429df396cf7d05fe77f09e6220c67dc5e66439b1801ca4d301a62f81f666122bf4b623b31a46b861677dcafc62a4' \
+    && echo "$dotnet_sha512 dotnet.tar.gz" | sha512sum -c - \
+    && mkdir -p /dotnet \
+    && tar -ozxf dotnet.tar.gz -C /dotnet \
+    && rm dotnet.tar.gz
+
+
+# .NET runtime image
+FROM $REPO:5.0-focal-amd64
+ARG DOTNET_VERSION
+
+ENV DOTNET_VERSION $DOTNET_VERSION
+
+COPY --from=installer ["/dotnet", "/usr/share/dotnet"]
+
+RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 # TODO: Put the maintainer name in the image metadata
 LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
