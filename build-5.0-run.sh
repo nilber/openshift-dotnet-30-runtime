@@ -9,6 +9,6 @@ TAG=5.0.0-run
 
 docker build src-5.0-run/ -t $DOCKER_IMAGEM:$TAG
 
-# s2i build src-5.0-run/ $DOCKER_IMAGEM:$TAG $S2I_IMAGEM:$TAG
+s2i build src-5.0-run/ $DOCKER_IMAGEM:$TAG $S2I_IMAGEM:$TAG
 
-# docker push $S2I_IMAGEM:$TAG
+docker push $S2I_IMAGEM:$TAG

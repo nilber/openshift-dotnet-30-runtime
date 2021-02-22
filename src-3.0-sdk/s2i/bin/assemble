@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -e
 #
 # S2I assemble script for the 'dotnet-30-runtime' image.
 # The 'assemble' script builds your application source so that it is ready to run.
@@ -8,9 +8,9 @@
 #
 
 # If the 'dotnet-30-runtime' assemble script is executed with the '-h' flag, print the usage.
-# if [[ "$1" == "-h" ]]; then
-# 	exec /usr/libexec/s2i/usage
-# fi
+if [[ "$1" == "-h" ]]; then
+	exec /usr/libexec/s2i/usage
+fi
 
 # Restore artifacts from the previous build (if they exist).
 #
@@ -22,7 +22,15 @@ fi
 echo "Docker Info"
 id
 pwd
-dotnet --version
+
+echo "ls -la .."
+ls -la ..
+
+echo "ls -la /tmp/src/"
+ls -la /tmp/src/
+
+echo "ls -la /opt/app-root/"
+ls -la /opt/app-root
 
 echo "End..."
 
@@ -38,17 +46,12 @@ echo "---> Building application from source..."
 
 export DOTNET_CLI_HOME="/tmp/DOTNET_CLI_HOME"
 
-echo "---> Download file..."
-if [ "$DOWNLOAD_URL" != "" ] ; then wget $DOWNLOAD_URL -O app.tar.gz ; else echo '(log) DOWNLOAD_URL variable not set'; fi
+echo "---> Restore from source..."
+if [ "$PATH_CSPROJ_FILE" != "" ] ; then dotnet restore "$PATH_CSPROJ_FILE" ; else echo '(restore) PATH_CSPROJ_FILE variable not set'; fi
 
-echo "---> Publish from build..."
-if [ "$DOWNLOAD_URL" != "" ] ; then tar -xf app.tar.gz ; rm -f app.tar.gz ; mv app_build/* /app ; else echo '(publish) DOWNLOAD_URL variable not set'; mkdir -p /app; fi
+echo "---> Publish from source..."
+if [ "$PATH_CSPROJ_FILE" != "" ] ; then dotnet publish "$PATH_CSPROJ_FILE" -c Release -o /app ; else echo '(publish) PATH_CSPROJ_FILE variable not set'; mkdir -p /app; fi
 
 if [ "$PROJECT_DLL" != "" ] ; then echo 'PROJECT_DLL OK'; else echo '(RUN) PROJECT_DLL variable not set'; fi
 
-if [ "$CUSTOM_CMD" != "" ] ; then  cd /app ; echo "#!/bin/sh -e" > custom.sh ; echo $CUSTOM_CMD >> custom.sh ; chmod +x custom.sh; ./custom.sh ; else echo '(RUN) CUSTOM_CMD variable not set'; fi
-
 rm -fr /opt/app-root/* /tmp/src/*
-
-echo "ls -la /app"
-ls -la /app

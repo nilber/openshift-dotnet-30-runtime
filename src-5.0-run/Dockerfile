@@ -5,6 +5,8 @@ ARG DOTNET_VERSION=5.0.0
 FROM amd64/buildpack-deps:focal-curl as installer
 ARG DOTNET_VERSION
 
+
+
 # Retrieve .NET
 RUN curl -SL --output dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runtime/$DOTNET_VERSION/dotnet-runtime-$DOTNET_VERSION-linux-x64.tar.gz \
     && dotnet_sha512='d4d67df5ff5f6dde0d865a6e87559955bd57429df396cf7d05fe77f09e6220c67dc5e66439b1801ca4d301a62f81f666122bf4b623b31a46b861677dcafc62a4' \
@@ -17,6 +19,15 @@ RUN curl -SL --output dotnet.tar.gz https://dotnetcli.azureedge.net/dotnet/Runti
 # .NET runtime image
 FROM $REPO:5.0-focal-amd64
 ARG DOTNET_VERSION
+
+
+RUN apt-get update -y \    
+    && apt install libc6-dev -y \
+    && apt install libgdiplus -y \
+    && apt-get install -y --no-install-recommends \
+        curl wget \
+    && rm -rf /var/lib/apt/lists/*
+
 
 ENV DOTNET_VERSION $DOTNET_VERSION
 
@@ -31,10 +42,10 @@ LABEL maintainer="Nilber Vittorazzi <nilber@vittorazzi.com>"
 ENV BUILDER_VERSION 1.0
 
 # TODO: Set labels used in OpenShift to describe the builder image
-LABEL io.k8s.description=".Net Core 3.1.3 RUN" \
-    io.k8s.display-name=".Net Core 3.1.3 RUN" \
+LABEL io.k8s.description=".Net Core 5.0.0 RUN" \
+    io.k8s.display-name=".Net Core 5.0.0 RUN" \
     io.openshift.expose-services="8080:http" \
-    io.openshift.tags="builder,dotnet-3.1.3-run." \
+    io.openshift.tags="builder,dotnet-5.0.0-run." \
     io.openshift.s2i.scripts-url="image:///usr/libexec/s2i"
 
 # TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
@@ -44,7 +55,7 @@ COPY ./s2i/bin/ /usr/libexec/s2i
 RUN ls -l /usr/libexec/s2i
 
 
-RUN mkdir /app && ls -la /
+RUN mkdir /app
 
 #RUN adduser --disabled-password --gecos "" www-data --force-badname
 RUN usermod -l 1001 www-data \
