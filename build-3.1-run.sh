@@ -2,7 +2,7 @@
 
 DOCKER_IMAGEM=dotnet-run-alpine
 S2I_IMAGEM=nbmaster/openshift-dotnet-run-alpine
-TAG=3.1.3-run
+TAG=3.1.3-run-v2
 
 # docker system prune
 # docker rmi $DOCKER_IMAGEM:$TAG $S2I_IMAGEM:$TAG
